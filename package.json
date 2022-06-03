@@ -1,0 +1,21 @@
+{
+  "name": "@starkeyjon/subgraph",
+  "license": "UNLICENSED",
+  "version": "1.0.0",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy",
+    "create-local": "graph create --node http://localhost:8020/ starkeyjon/NFTMarket",
+    "remove-local": "graph remove --node http://localhost:8020/ starkeyjon/NFTMarket",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 starkeyjon/NFTMarket"
+  },
+  "dependencies": {
+    "@amxx/graphprotocol-utils": "^1.1.0-alpha.2",
+    "@graphprotocol/graph-cli": "^0.22.1",
+    "@graphprotocol/graph-ts": "^0.22.1"
+  },
+  "devDependencies": {
+    "mustache": "^3.1.0"
+  }
+}

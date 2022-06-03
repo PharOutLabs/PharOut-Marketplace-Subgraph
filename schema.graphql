@@ -1,0 +1,275 @@
+enum StatsType {
+  users
+  listings
+  sales
+  bids
+  offers
+  trades
+  blindBids
+  blindOffers
+  blindTrades
+}
+
+type Stats @entity {
+  id: ID! #"{StatsType}_stats"
+  type: StatsType!
+  count: BigInt!
+}
+
+type User @entity {
+  id: ID! #address
+  date: String # date created
+  block: BigInt # block created
+  marketItems: [MarketItem!] @derivedFrom(field: "user")
+  swaps: [Swap!] @derivedFrom(field: "buyer")
+  bids: [Bid!] @derivedFrom(field: "bidder")
+  offers: [Offer!] @derivedFrom(field: "offerer")
+  trades: [Trade!] @derivedFrom(field: "trader")
+  rewards: [RewardsUser!] @derivedFrom(field: "user")
+  mints: [MintEvent!] @derivedFrom(field: "minter")
+}
+
+type MarketItem @entity {
+  id: ID! #fromAddress + tokenAddress + itemId
+  block: BigInt # block created
+  date: String # date created 
+  active: Boolean!
+  type: StatsType!
+  user: User
+  nft: NFT!
+  itemId: BigInt
+  amount1155: BigInt
+  price: BigInt
+  swaps: [Swap!] @derivedFrom(field: "item")
+  bids: [Bid!] @derivedFrom(field: "item")
+  offers: [Offer!] @derivedFrom(field: "item")
+  trades: [Trade!] @derivedFrom(field: "tradeFor")
+}
+
+enum NFTType {
+  ERC721
+  ERC1155
+}
+
+type Metadata @entity {
+  id: ID! #token_address + token_id
+  nft: NFT!
+  uri: String
+  name: String
+  symbol: String
+}
+
+type NFT @entity {
+  id: ID! #token_address + token_id
+  contract_type: NFTType!
+  token_address: Bytes!
+  token_id: BigInt!
+  owner_of: Bytes
+  metadata: Metadata @derivedFrom(field: "nft")
+  marketItems: [MarketItem!] @derivedFrom(field: "nft")
+}
+
+enum OrderType {
+  listed
+  blind
+  tradeItem
+}
+
+type Token @entity {
+  id: ID! # address
+  token_address: Bytes!
+  name: String
+  symbol: String
+  decimals: BigInt!
+}
+
+type Swap @entity {
+  id: ID! # tx
+  date: String!
+  block: BigInt!
+  type: OrderType!
+  item: MarketItem!
+  buyer: User!
+  value: BigInt
+  amount1155: BigInt
+}
+
+type MintEvent @entity {
+  id: ID! # minter + nftId
+  date: String!
+  block: BigInt!
+  minter: User!
+  nftId: BigInt!
+  value: BigInt
+  redemptionToken: Token
+}
+
+type Offer @entity {
+  id: ID! # offerer + offerId
+  type: OrderType!
+  date: String!
+  block: BigInt!
+  item: MarketItem
+  offerId : BigInt!
+  offerer: User!
+  isSpecific: Boolean! # bool
+  token: Token!
+  amount: BigInt!
+  active: Boolean!
+  accepted: Boolean!
+  receiver: User
+}
+
+type Bid @entity {
+  id: ID! # bidder + bidId
+  type: OrderType!
+  date: String!
+  block: BigInt!
+  item: MarketItem
+  bidId : BigInt!
+  bidder: User!
+  value: BigInt!
+  isSpecific: Boolean! # bool
+  active: Boolean!
+  accepted: Boolean!
+  receiver: User
+}
+
+type Trade @entity {
+  id: ID! # trader + tradeId
+  type: OrderType!
+  date: String!
+  block: BigInt!
+  itemId: BigInt
+  tradeWith: MarketItem!
+  tradeFor: MarketItem!
+  tradeId : BigInt!
+  trader: User!
+  isSpecific: Boolean! # bool
+  active: Boolean!
+  accepted: Boolean!
+  receiver: User
+}
+
+enum RewardType {
+  dao
+  dev
+  user
+  pham
+}
+
+type RewardsTokensSet @entity {
+  id: ID! #rewards_tokens_set
+  total: BigInt!
+  tokens: [RewardsToken!]!
+  dayData: RewardsDayData!
+  hourData: RewardsHourData!
+}
+
+type RewardsToken @entity {
+  id: ID!
+  token: Token!
+  amount: BigInt!
+}
+
+type RewardsTokenClaim @entity {
+  id: ID! #token_address + user_address
+  token: Token!
+  amount: BigInt!
+  claim: ClaimedRewards!
+}
+
+type ClockTokens @entity {
+  id: ID! #token_address + hourString
+  aeon: BigInt!
+  token: RewardsToken!
+  alpha: BigInt!
+  delta: BigInt!
+  omega: BigInt!
+  dev: BigInt!
+  dao: BigInt!
+  dayData: RewardsDayData!
+  hourData: RewardsHourData!
+}
+
+type ClaimedRewards @entity {
+  id: ID! # tx
+  user: RewardsUser!
+  date: String!
+  block: BigInt!
+  type: RewardType!
+  eth: BigInt!
+  tokens: [RewardsTokenClaim!] @derivedFrom(field: "claim")
+}
+
+type RewardsUser @entity {
+  id: ID! #address
+  user: User
+  userId: BigInt
+  type: RewardType
+  createdAt: String
+  blockCreated: BigInt
+  claims: [ClaimedRewards!] @derivedFrom(field: "user")
+  kairos: BigInt
+  aeons: BigInt!
+  epoch: BigInt!
+  active: Boolean
+  canClaim: Boolean
+}
+
+type ClaimClock @entity {
+  id: ID! #day + month + year
+  date: String!
+  aeon: BigInt!
+  block: BigInt!
+  alpha: BigInt!
+  delta: BigInt!
+  omega: BigInt!
+  totalUsers: BigInt!
+  totalDevs: BigInt!
+  totalEther: BigInt!
+  tokenSet: RewardsTokensSet!
+}
+
+type ClockCount @entity {
+  id: ID!
+  count: BigInt!
+  epoch: BigInt!
+  aeons: BigInt!
+}
+
+type RewardsDayData @entity {
+  id: ID! # day + month + year
+  date: BigInt! # end of range
+  aeon: BigInt!
+  totalEth: BigInt!
+  totalTokens: BigInt!
+  tokenSet: RewardsTokensSet!
+  clockTokens: [ClockTokens!] @derivedFrom(field: "dayData")
+  totalUsers: BigInt!
+  totalNFTHolders: BigInt!
+  totalDevs: BigInt!
+  userClaimAlpha: BigInt!
+  userClaimDelta: BigInt!
+  userClaimOmega: BigInt!
+  devClaim: BigInt!
+  daoClaim: BigInt!
+}
+
+type RewardsHourData @entity {
+  id: ID! # day + month + year + hour
+  date: BigInt! # end of range
+  aeon: BigInt!
+  totalEth: BigInt!
+  totalTokens: BigInt!
+  tokenSet: RewardsTokensSet!
+  clockTokens: [ClockTokens!] @derivedFrom(field: "hourData")
+  totalUsers: BigInt!
+  totalNFTHolders: BigInt!
+  totalDevs: BigInt!
+  userClaimAlpha: BigInt!
+  userClaimDelta: BigInt!
+  userClaimOmega: BigInt!
+  devClaim: BigInt!
+  daoClaim: BigInt!
+}
