@@ -5,4 +5,4 @@ The PharOut MarketPlace uses the SubGraph for decentralized indexing of market o
 
 It was custom designed and written particularly for this marketplace, and may be expanded on in the future.
 
-There are mainly 5-6 different MP contracts to consolidate, and unique rewards calculations done for the rewards contracts and all the users stats.
+There are mainly 5-6 different main MP contracts to consolidate, and unique rewards calculations done for the rewards contracts and all the users stats.
